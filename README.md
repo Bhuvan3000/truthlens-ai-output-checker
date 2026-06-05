@@ -1,3 +1,4 @@
+
 # TruthLens Trust API
 
 A small FastAPI service that accepts AI-generated text and returns a structured trust verdict.
@@ -102,3 +103,6 @@ pytest
 docker build -t truthlens-api .
 docker run --rm -p 8000:8000 truthlens-api
 ```
+
+# truthlens-ai-output-checker
+
