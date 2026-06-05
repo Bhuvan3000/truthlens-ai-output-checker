@@ -3,6 +3,40 @@
 
 A small FastAPI service that accepts AI-generated text and returns a structured trust verdict.
 
+## Submission Write-Up
+
+### What I Built
+
+I built a small REST API that evaluates AI-generated text for trust and review signals. The API has one endpoint, `POST /analyze`, which accepts JSON in the form:
+
+```json
+{ "text": "..." }
+```
+
+It returns a structured verdict of `clean`, `review`, or `suspicious`, along with every check result and a filtered list of only the checks that fired. Each fired check includes a short reason so the response is explainable rather than just a score.
+
+### Key Decisions
+
+I chose FastAPI because it is lightweight, easy to run locally, and automatically provides interactive API docs at `/docs`. I separated the HTTP layer from the checking logic so the heuristics can be tested and changed without touching the API contract.
+
+The checks are intentionally heuristic rather than pretending to prove whether the text is true. For this kind of product, I think a useful first step is to identify claims that deserve review. I chose signals that commonly make AI answers risky:
+
+- precise numbers without verifiable sources
+- citation-like language without an actual locator
+- absolute confidence mixed with uncertainty
+- fresh or time-sensitive claims without a way to verify timing
+- simple internal contradiction patterns
+
+The verdict logic is also simple on purpose: no fired checks means `clean`, one low or medium issue means `review`, and either a high-severity issue or multiple medium issues means `suspicious`.
+
+### Where AI Output Was Weak
+
+One weak initial output was in the unsupported-statistics logic. The first version treated vague citation language, such as "according to researchers," as enough support for precise numeric claims. That was too generous because an answer can sound sourced while still giving the reader no way to verify it.
+
+I caught this through a test case. The test sent text with multiple precise numbers and vague citation language but no URL, DOI, ISBN, or other locator. I expected the API to return `suspicious`, but it returned `review`. That showed the check was giving too much credit to source-shaped wording.
+
+I fixed it by changing the check so precise numeric claims only count as supported when there is a verifiable locator, such as a URL, DOI, or ISBN. This made the service better aligned with the product goal: trust should depend on inspectable evidence, not just confident phrasing.
+
 ## Run Locally
 
 ```bash
@@ -105,6 +139,4 @@ pytest
 docker build -t truthlens-api .
 docker run --rm -p 8000:8000 truthlens-api
 ```
-
-# truthlens-ai-output-checker
 
