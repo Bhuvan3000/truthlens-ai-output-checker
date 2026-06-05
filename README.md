@@ -14,6 +14,8 @@ uvicorn app.main:app --reload
 
 The API will be available at `http://127.0.0.1:8000`.
 
+FastAPI's interactive docs are available at `http://127.0.0.1:8000/docs`.
+
 ## Endpoint
 
 `POST /analyze`
